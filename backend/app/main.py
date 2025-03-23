@@ -1,6 +1,6 @@
-from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api.routes import router as api_router  # ✅ Make sure this path is correct
+from fastapi import FastAPI
+from app.api.routes import router as api_router
 
 app = FastAPI(title="Privacy Audit API")
 
@@ -12,4 +12,4 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(api_router, prefix="/api")
+app.include_router(api_router, prefix="/api")  # THIS IS IMPORTANT ✅
