@@ -38,3 +38,11 @@ sympy==1.13.3
 typing_extensions==4.12.2
 urllib3==1.26.3
 zipp==3.21.0
+
+fastapi
+uvicorn
+requests[socks]
+pysocks
+beautifulsoup4
+lxml
+pydantic[email]
