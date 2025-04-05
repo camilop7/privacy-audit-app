@@ -18,3 +18,5 @@ RUN pip install --no-cache-dir -r /app/requirements.txt
 
 # Default command
 CMD ["sh", "entrypoint.sh"]
+
+COPY ./worker /app/worker
