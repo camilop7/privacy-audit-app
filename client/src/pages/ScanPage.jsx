@@ -20,26 +20,30 @@ const ScanPage = () => {
   };
 
   return (
-    <div style={{ padding: '20px' }}>
-      <h2>🧪 Scan a Website</h2>
-      <input
-        value={url}
-        onChange={(e) => setUrl(e.target.value)}
-        placeholder="https://example.com"
-        style={{ width: '300px', padding: '8px', marginRight: '10px' }}
-      />
-      <button onClick={handleScan}>Scan</button>
+    <div className="main-content">
+      <div className="scan-container">
+        <h2>🌐 Website Privacy Scanner</h2>
+        <div className="scan-input-group">
+          <input
+            type="text"
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+            placeholder="https://example.com"
+          />
+          <button onClick={handleScan}>Scan</button>
+        </div>
 
-      {result && !result.error && (
-        <>
-          <ScanResultCard result={result} onViewReport={() => setShowReport(true)} />
-          <ReportDialog isOpen={showReport} result={result} onClose={() => setShowReport(false)} />
-        </>
-      )}
+        {result && !result.error && (
+          <>
+            <ScanResultCard result={result} onViewReport={() => setShowReport(true)} />
+            <ReportDialog isOpen={showReport} result={result} onClose={() => setShowReport(false)} />
+          </>
+        )}
 
-      {result?.error && (
-        <p style={{ marginTop: '20px', color: 'red' }}>{result.error}</p>
-      )}
+        {result?.error && (
+          <p className="error-message">{result.error}</p>
+        )}
+      </div>
     </div>
   );
 };
