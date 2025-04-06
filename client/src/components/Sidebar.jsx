@@ -13,6 +13,7 @@ const Sidebar = () => {
     { name: 'Scan Website', path: '/scan' },
     { name: 'Phone Scanner', path: '/phone' },
     { name: 'Emergency Tracker', path: '/emergency' },
+    { name: 'Admin Dashboard', path: '/admin-dashboard' }
   ];
 
   return (

@@ -4,6 +4,7 @@ import Layout from './components/Layout';
 import ScanPage from './pages/ScanPage';
 import PhoneTracker from './pages/PhoneTracker';
 import EmergencyTracker from './pages/EmergencyTracker';
+import AdminDashboard from './pages/AdminDashboard';
 
 function App() {
   return (
@@ -13,6 +14,7 @@ function App() {
           <Route path="/scan" element={<ScanPage />} />
           <Route path="/phone" element={<PhoneTracker />} />
           <Route path="/emergency" element={<EmergencyTracker />} />
+          <Route path="/admin-dashboard" element={<AdminDashboard />} />
         </Routes>
       </Layout>
     </Router>

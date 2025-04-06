@@ -4,9 +4,15 @@ from app.api.routes import router as api_router
 
 app = FastAPI(title="Privacy Audit API")
 
+allow_origins = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://host.docker.internal:3000",  # ← Docker-for-Mac/Windows
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=allow_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
