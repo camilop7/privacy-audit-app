@@ -12,7 +12,11 @@ allow_origins = [
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=allow_origins,
+    allow_origins=[
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "http://host.docker.internal:3000"  # ← for Docker to allow your host access
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

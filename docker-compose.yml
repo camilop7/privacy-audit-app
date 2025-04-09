@@ -1,0 +1,32 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:13
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: yourpassword
+      POSTGRES_DB: privacy_audit
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  backend:
+    build:
+      context: ./backend
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: postgresql://postgres:yourpassword@db:5432/privacy_audit
+      PYTHONPATH: /app
+    volumes:
+      - ./backend/app:/app/app
+      - ./backend/worker:/app/worker
+      - ./backend/scripts:/app/scripts
+
+volumes:
+  postgres_data:

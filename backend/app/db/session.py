@@ -3,7 +3,10 @@ from sqlalchemy.orm import sessionmaker, declarative_base
 import os
 
 # Database connection URL
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:yourpassword@localhost:5432/privacy_audit")
+DATABASE_URL = os.getenv(
+    "DATABASE_URL",
+    "postgresql://postgres:yourpassword@db:5432/privacy_audit"
+)
 
 # Engine and session setup
 engine = create_engine(DATABASE_URL)

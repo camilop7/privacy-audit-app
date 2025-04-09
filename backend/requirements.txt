@@ -46,3 +46,5 @@ pysocks
 beautifulsoup4
 lxml
 pydantic[email]
+python-dotenv
+faker
