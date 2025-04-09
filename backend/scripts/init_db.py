@@ -46,7 +46,14 @@ def seed_fake_users(db: Session, total: int = 50):
             email=fake.unique.email(),
             hashed_password="fakehashed",
             username=fake.unique.user_name(),
-            role=random.choice(roles)
+            role=random.choice(roles),
+            full_name=fake.name(),
+            phone=fake.phone_number(),
+            address=fake.address(),
+            company=fake.company(),
+            job_title=fake.job(),
+            bio=fake.text(max_nb_chars=200),
+            profile_picture=fake.image_url()
         )
         db.add(user)
 

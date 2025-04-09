@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 
 from app.api.routes import auth
+from app.api.routes import admin
 from app.api.routes.scan import router as scan_router
 from app.api.routes.phone import phone_router
 from app.api.routes.emergency import emergency_router

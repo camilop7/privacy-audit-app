@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import UserTable from '../components/UserTable';
 
 const AdminDashboard = () => {
   const [users, setUsers] = useState([]);
@@ -7,10 +8,21 @@ const AdminDashboard = () => {
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(false);
 
+  // Form state for new user
+  const [newUser, setNewUser] = useState({
+    email: '',
+    username: '',
+    hashed_password: '',
+    role: 'user'
+  });
+
+  const roles = ['admin', 'analyst', 'user'];
+
   const fetchUsers = async () => {
     setLoading(true);
     try {
       const res = await axios.get('http://localhost:8000/api/admin/users');
+      console.log('✅ Users fetched:', res.data);
       setUsers(res.data);
     } catch (err) {
       console.error('❌ Failed to fetch users', err);
@@ -26,9 +38,32 @@ const AdminDashboard = () => {
   const toggleUserStatus = async (userId) => {
     try {
       await axios.post(`http://localhost:8000/api/admin/toggle-user/${userId}`);
-      fetchUsers(); // Refresh user list
+      setUsers(prev =>
+        prev.map(user =>
+          user.id === userId ? { ...user, is_active: !user.is_active } : user
+        )
+      );
     } catch (err) {
       console.error('❌ Failed to toggle user status', err);
+    }
+  };
+
+  const createUser = async () => {
+    try {
+      await axios.post('http://localhost:8000/api/admin/users', newUser);
+      setNewUser({ email: '', username: '', hashed_password: '', role: 'user' });
+      fetchUsers();
+    } catch (err) {
+      console.error('❌ Failed to create user', err);
+    }
+  };
+
+  const deleteUser = async (userId) => {
+    try {
+      await axios.delete(`http://localhost:8000/api/admin/users/${userId}`);
+      fetchUsers();
+    } catch (err) {
+      console.error('❌ Failed to delete user', err);
     }
   };
 
@@ -38,12 +73,11 @@ const AdminDashboard = () => {
      user.username.toLowerCase().includes(search.toLowerCase()))
   );
 
-  const roles = ['admin', 'analyst', 'user'];
-
   return (
     <div style={{ padding: '20px' }}>
       <h2>🔐 Admin Dashboard</h2>
 
+      {/* Search & Filter */}
       <div style={{ marginBottom: '20px' }}>
         <input
           type="text"
@@ -65,52 +99,51 @@ const AdminDashboard = () => {
         </select>
       </div>
 
+      {/* New User Form */}
+      <div style={{ marginBottom: '30px', borderTop: '1px solid #ddd', paddingTop: '20px' }}>
+        <h4>Create New User</h4>
+        <input
+          placeholder="Email"
+          value={newUser.email}
+          onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
+          style={{ marginRight: '10px', padding: '6px' }}
+        />
+        <input
+          placeholder="Username"
+          value={newUser.username}
+          onChange={(e) => setNewUser({ ...newUser, username: e.target.value })}
+          style={{ marginRight: '10px', padding: '6px' }}
+        />
+        <input
+          type="password"
+          placeholder="Password"
+          value={newUser.hashed_password}
+          onChange={(e) => setNewUser({ ...newUser, hashed_password: e.target.value })}
+          style={{ marginRight: '10px', padding: '6px' }}
+        />
+        <select
+          value={newUser.role}
+          onChange={(e) => setNewUser({ ...newUser, role: e.target.value })}
+          style={{ marginRight: '10px', padding: '6px' }}
+        >
+          {roles.map(role => (
+            <option key={role} value={role}>{role}</option>
+          ))}
+        </select>
+        <button onClick={createUser} style={{ padding: '6px 12px' }}>
+          ➕ Create User
+        </button>
+      </div>
+
+      {/* User Table */}
       {loading ? (
         <p>Loading users...</p>
       ) : (
-        <table style={{
-          width: '100%',
-          borderCollapse: 'collapse',
-          background: '#fff',
-          boxShadow: '0 0 10px rgba(0,0,0,0.1)'
-        }}>
-          <thead style={{ background: '#1a1a1a', color: '#fff' }}>
-            <tr>
-              <th style={{ padding: '10px' }}>Username</th>
-              <th style={{ padding: '10px' }}>Email</th>
-              <th style={{ padding: '10px' }}>Role</th>
-              <th style={{ padding: '10px' }}>Status</th>
-              <th style={{ padding: '10px' }}>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredUsers.map(user => (
-              <tr key={user.id} style={{ borderBottom: '1px solid #eee' }}>
-                <td style={{ padding: '10px' }}>{user.username}</td>
-                <td style={{ padding: '10px' }}>{user.email}</td>
-                <td style={{ padding: '10px' }}>{user.role}</td>
-                <td style={{ padding: '10px', fontWeight: 'bold', color: user.is_active ? 'green' : 'red' }}>
-                  {user.is_active ? 'Active' : 'Banned'}
-                </td>
-                <td style={{ padding: '10px' }}>
-                  <button
-                    onClick={() => toggleUserStatus(user.id)}
-                    style={{
-                      padding: '6px 12px',
-                      background: user.is_active ? '#e74c3c' : '#2ecc71',
-                      color: '#fff',
-                      border: 'none',
-                      borderRadius: '5px',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    {user.is_active ? 'Ban' : 'Unban'}
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <UserTable
+          users={filteredUsers}
+          onToggleStatus={toggleUserStatus}
+          onDelete={deleteUser}
+        />
       )}
     </div>
   );
