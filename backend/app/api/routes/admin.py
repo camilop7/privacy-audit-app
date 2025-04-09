@@ -5,6 +5,8 @@ from app.models.user import User, UserRole
 from uuid import UUID
 from typing import List
 from pydantic import BaseModel
+from app.core.deps import get_current_admin
+
 
 admin_router = APIRouter()
 
@@ -25,7 +27,7 @@ class UserCreate(BaseModel):
     role: UserRole = UserRole.user
 
 @admin_router.get("/users", response_model=List[UserOut])
-def list_users(db: Session = Depends(get_db)):
+def list_users(db: Session = Depends(get_db), current_user: User = Depends(get_current_admin)):
     return db.query(User).all()
 
 @admin_router.get("/users/{user_id}", response_model=UserOut)

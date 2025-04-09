@@ -1,11 +1,11 @@
 FROM python:3.9-slim
 
-# Install Tor and tools
+# Install netcat (openbsd), tor, curl, build tools
 RUN apt-get update && apt-get install -y \
-    tor curl build-essential && \
+    netcat-openbsd tor curl build-essential && \
     apt-get clean
 
-# Set workdir
+# Set working directory
 WORKDIR /app
 
 # Copy application files
@@ -18,11 +18,11 @@ COPY entrypoint.sh /app/
 COPY ./alembic /app/alembic
 COPY ./alembic.ini /app/alembic.ini
 
-# Install dependencies
+# Install Python dependencies
 RUN pip install --no-cache-dir -r /app/requirements.txt
 
-# Expose the backend port
+# Expose backend port
 EXPOSE 8000
 
-# Set default command
+# Default command
 CMD ["sh", "entrypoint.sh"]

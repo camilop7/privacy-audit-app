@@ -21,8 +21,12 @@ const AdminDashboard = () => {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const res = await axios.get('http://localhost:8000/api/admin/users');
-      console.log('✅ Users fetched:', res.data);
+      const token = localStorage.getItem('token'); // ✅ grab token from localStorage
+      const res = await axios.get('http://localhost:8000/api/admin/users', {
+        headers: {
+          Authorization: `Bearer ${token}` // ✅ include token in header
+        }
+      });
       setUsers(res.data);
     } catch (err) {
       console.error('❌ Failed to fetch users', err);
@@ -30,6 +34,7 @@ const AdminDashboard = () => {
       setLoading(false);
     }
   };
+
 
   useEffect(() => {
     fetchUsers();

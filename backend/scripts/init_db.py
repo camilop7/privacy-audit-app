@@ -7,6 +7,7 @@ from app.db.session import Base
 import uuid
 from faker import Faker
 import random
+from app.core.security import hash_password
 
 fake = Faker()
 
@@ -22,7 +23,7 @@ def seed_admin_user(db: Session):
     new_user = User(
         id=uuid.uuid4(),
         email=admin_email,
-        hashed_password="hashed_admin_password",  # Replace with a secure hash in real use
+        hashed_password=hash_password("admin123"),  # ✅ Secure password here
         username="admin",
         role=UserRole.admin
     )
@@ -44,7 +45,7 @@ def seed_fake_users(db: Session, total: int = 50):
         user = User(
             id=uuid.uuid4(),
             email=fake.unique.email(),
-            hashed_password="fakehashed",
+            hashed_password=hash_password("user123"),
             username=fake.unique.user_name(),
             role=random.choice(roles),
             full_name=fake.name(),
