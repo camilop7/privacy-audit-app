@@ -26,3 +26,5 @@ EXPOSE 8000
 
 # Default command
 CMD ["sh", "entrypoint.sh"]
+
+COPY .env /app/.env

@@ -4,7 +4,7 @@ import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
-// Leaflet icon fix
+// Leaflet fix
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: require('leaflet/dist/images/marker-icon-2x.png'),
@@ -82,21 +82,10 @@ const EmergencyTracker = () => {
   const searchManualIP = async () => {
     if (!manualIP) return;
     setManualResult(null);
+    setError(null);
     try {
-      const res = await axios.get(`http://ip-api.com/json/${manualIP}`);
-      if (res.data.status === 'success') {
-        setManualResult({
-          ip: manualIP,
-          city: res.data.city,
-          region: res.data.regionName,
-          country: res.data.country,
-          lat: res.data.lat,
-          lon: res.data.lon
-        });
-      } else {
-        setManualResult(null);
-        setError('Could not find location for this IP.');
-      }
+      const res = await axios.get(`http://localhost:8000/api/emergency/ip-lookup/${manualIP}`);
+      setManualResult(res.data);
     } catch (err) {
       setError('IP lookup failed: ' + err.message);
     }
@@ -149,6 +138,20 @@ const EmergencyTracker = () => {
         </button>
       </div>
 
+      {manualResult && (
+        <div style={{
+          padding: '10px 15px',
+          background: '#f8f8f8',
+          borderRadius: '6px',
+          marginBottom: '20px',
+          border: '1px solid #ccc'
+        }}>
+          <p><strong>VPN:</strong> {manualResult.vpn ? 'Yes' : 'No'}</p>
+          <p><strong>Org:</strong> {manualResult.org}</p>
+          <p><strong>Hostname:</strong> {manualResult.hostname}</p>
+        </div>
+      )}
+
       {/* Location Details + Map */}
       {error && <p style={{ color: 'red' }}>{error}</p>}
       {displayLocation && (
@@ -193,14 +196,8 @@ const EmergencyTracker = () => {
         </div>
       )}
 
-      {/* Live Device Tracker */}
-      <div style={{
-        marginTop: '30px',
-        padding: '20px',
-        border: '1px solid #ddd',
-        borderRadius: '8px',
-        background: '#fafafa'
-      }}>
+      {/* Live Tracker */}
+      <div style={{ marginTop: '30px' }}>
         <h3>📡 Live Device Tracker</h3>
         <input
           type="text"
@@ -220,9 +217,9 @@ const EmergencyTracker = () => {
           {isChecking ? 'Checking...' : 'Check Status'}
         </button>
 
-        {statusError && <p style={{ color: 'red', marginTop: '10px' }}>{statusError}</p>}
+        {statusError && <p style={{ color: 'red' }}>{statusError}</p>}
 
-        {statusResult && statusResult.success && (
+        {statusResult?.success && (
           <div style={{
             marginTop: '20px',
             padding: '15px',
@@ -231,12 +228,7 @@ const EmergencyTracker = () => {
             background: statusResult.alert_recommended ? '#fff0f0' : '#f0fff0'
           }}>
             <p><strong>Device:</strong> {statusResult.device_id}</p>
-            <p>
-              <strong>Status:</strong>{' '}
-              <span style={{ color: statusResult.status === 'active' ? 'green' : 'red' }}>
-                {statusResult.status.toUpperCase()}
-              </span>
-            </p>
+            <p><strong>Status:</strong> {statusResult.status.toUpperCase()}</p>
             <p><strong>Last Seen:</strong> {new Date(statusResult.last_seen).toLocaleString()}</p>
             <p><strong>Inactive For:</strong> {statusResult.inactive_for_minutes} min</p>
             <p><strong>IP:</strong> {statusResult.location.ip}</p>
@@ -249,7 +241,7 @@ const EmergencyTracker = () => {
         )}
       </div>
 
-      {/* History Toggle Section */}
+      {/* Emergency Ping History */}
       {history.length > 0 && (
         <div
           style={{
@@ -287,7 +279,7 @@ const EmergencyTracker = () => {
         </div>
       )}
 
-      {/* Move emergency ping to bottom */}
+      {/* Emergency Ping Button */}
       <div style={{
         position: 'fixed',
         bottom: '20px',

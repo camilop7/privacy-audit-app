@@ -1,30 +1,33 @@
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Request, HTTPException
 from fastapi.responses import JSONResponse
 import requests
 from datetime import datetime, timedelta
+from app.core.config import settings
 
 print("✅ Emergency router loaded")
 
-
 emergency_router = APIRouter()
 
-# Store emergency pings in memory (can later connect to DB)
+# Store emergency pings in memory
 EMERGENCY_PINGS = []
 
 @emergency_router.post("/ping")
 async def send_emergency_ping(request: Request):
     ip = request.client.host
     try:
-        geo_res = requests.get(f"http://ip-api.com/json/{ip}")
+        geo_res = requests.get(f"https://ipinfo.io/{ip}/json?token={settings.IPINFO_TOKEN}")
         geo_data = geo_res.json()
+
+        loc_split = geo_data.get("loc", "").split(",")
+        lat, lon = (float(loc_split[0]), float(loc_split[1])) if len(loc_split) == 2 else (None, None)
 
         location_data = {
             "ip": ip,
             "city": geo_data.get("city"),
-            "region": geo_data.get("regionName"),
+            "region": geo_data.get("region"),
             "country": geo_data.get("country"),
-            "lat": geo_data.get("lat"),
-            "lon": geo_data.get("lon"),
+            "lat": lat,
+            "lon": lon,
         }
 
         EMERGENCY_PINGS.append(location_data)
@@ -37,6 +40,7 @@ async def send_emergency_ping(request: Request):
 @emergency_router.get("/locations")
 def get_emergency_locations():
     return {"success": True, "data": EMERGENCY_PINGS}
+
 
 LIVE_TRACKING = {}  # device_id -> {timestamp, lat, lon, ip}
 
@@ -59,6 +63,7 @@ async def live_ping(request: Request):
     }
 
     return JSONResponse(content={"success": True, "message": "Ping received"})
+
 
 @emergency_router.get("/check-status")
 def check_status(device_id: str, timeout_minutes: int = 60):
@@ -84,3 +89,31 @@ def check_status(device_id: str, timeout_minutes: int = 60):
         },
         "alert_recommended": not is_active
     })
+
+
+# ✅ NEW IP lookup route using IPInfo API
+@emergency_router.get("/ip-lookup/{ip}")
+def ip_lookup(ip: str):
+    try:
+        res = requests.get(f"https://ipinfo.io/{ip}/json?token={settings.IPINFO_TOKEN}")
+        if res.status_code != 200:
+            raise HTTPException(status_code=400, detail="Failed to fetch IP info")
+
+        data = res.json()
+        loc = data.get("loc", "").split(",")
+        lat, lon = (float(loc[0]), float(loc[1])) if len(loc) == 2 else (None, None)
+
+        return {
+            "ip": data.get("ip"),
+            "city": data.get("city"),
+            "region": data.get("region"),
+            "country": data.get("country"),
+            "lat": lat,
+            "lon": lon,
+            "org": data.get("org"),
+            "hostname": data.get("hostname"),
+            "vpn": data.get("privacy", {}).get("vpn") if "privacy" in data else None,
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"IP lookup failed: {str(e)}")

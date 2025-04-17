@@ -45,6 +45,6 @@ requests[socks]
 pysocks
 beautifulsoup4
 lxml
-pydantic[email]
 python-dotenv
 faker
+pydantic[email]==1.10.13

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
 import UserTable from '../components/UserTable';
 
@@ -8,7 +8,6 @@ const AdminDashboard = () => {
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // Form state for new user
   const [newUser, setNewUser] = useState({
     email: '',
     username: '',
@@ -18,59 +17,71 @@ const AdminDashboard = () => {
 
   const roles = ['admin', 'analyst', 'user'];
 
-  const fetchUsers = async () => {
+  const getAuthHeaders = () => {
+    const token = localStorage.getItem('token');
+    return { Authorization: `Bearer ${token}` };
+  };
+
+  const fetchUsers = useCallback(async () => {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
     setLoading(true);
     try {
-      const token = localStorage.getItem('token'); // ✅ grab token from localStorage
       const res = await axios.get('http://localhost:8000/api/admin/users', {
-        headers: {
-          Authorization: `Bearer ${token}` // ✅ include token in header
-        }
+        headers: getAuthHeaders()
       });
       setUsers(res.data);
     } catch (err) {
-      console.error('❌ Failed to fetch users', err);
+      console.error('❌ Failed to fetch users:', err?.response?.data || err.message);
     } finally {
       setLoading(false);
     }
-  };
-
-
-  useEffect(() => {
-    fetchUsers();
   }, []);
 
-  const toggleUserStatus = async (userId) => {
+  const toggleUserStatus = useCallback(async (userId) => {
     try {
-      await axios.post(`http://localhost:8000/api/admin/toggle-user/${userId}`);
+      await axios.post(
+        `http://localhost:8000/api/admin/toggle-user/${userId}`,
+        {},
+        { headers: getAuthHeaders() }
+      );
       setUsers(prev =>
         prev.map(user =>
           user.id === userId ? { ...user, is_active: !user.is_active } : user
         )
       );
     } catch (err) {
-      console.error('❌ Failed to toggle user status', err);
+      console.error('❌ Failed to toggle user status:', err?.response?.data || err.message);
     }
-  };
+  }, []);
 
-  const createUser = async () => {
+  const createUser = useCallback(async () => {
     try {
-      await axios.post('http://localhost:8000/api/admin/users', newUser);
+      await axios.post('http://localhost:8000/api/admin/users', newUser, {
+        headers: getAuthHeaders()
+      });
       setNewUser({ email: '', username: '', hashed_password: '', role: 'user' });
       fetchUsers();
     } catch (err) {
-      console.error('❌ Failed to create user', err);
+      console.error('❌ Failed to create user:', err?.response?.data || err.message);
     }
-  };
+  }, [newUser, fetchUsers]);
 
-  const deleteUser = async (userId) => {
+  const deleteUser = useCallback(async (userId) => {
     try {
-      await axios.delete(`http://localhost:8000/api/admin/users/${userId}`);
+      await axios.delete(`http://localhost:8000/api/admin/users/${userId}`, {
+        headers: getAuthHeaders()
+      });
       fetchUsers();
     } catch (err) {
-      console.error('❌ Failed to delete user', err);
+      console.error('❌ Failed to delete user:', err?.response?.data || err.message);
     }
-  };
+  }, [fetchUsers]);
+
+  useEffect(() => {
+    fetchUsers();
+  }, [fetchUsers]);
 
   const filteredUsers = users.filter(user =>
     (!roleFilter || user.role === roleFilter) &&
