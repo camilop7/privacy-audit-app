@@ -14,7 +14,6 @@ L.Icon.Default.mergeOptions({
 
 const EmergencyTracker = () => {
   const [location, setLocation] = useState(null);
-  const [fallbackLocation, setFallbackLocation] = useState(null);
   const [history, setHistory] = useState([]);
   const [error, setError] = useState(null);
   const [isPinging, setIsPinging] = useState(false);
@@ -26,47 +25,54 @@ const EmergencyTracker = () => {
   const [statusError, setStatusError] = useState('');
   const [isChecking, setIsChecking] = useState(false);
 
-  const isUnknown = (value) => !value || value === 'Unknown' || value === null;
-
-  const getFallbackLocation = () => {
-    if ('geolocation' in navigator) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setFallbackLocation({
-            lat: position.coords.latitude,
-            lon: position.coords.longitude,
-            city: 'Device Location',
-            region: '',
-            country: '',
-            ip: 'Local Device',
-          });
-        },
-        (err) => console.warn("Geolocation error:", err.message)
-      );
-    }
-  };
-
   const sendEmergencyPing = async () => {
     setIsPinging(true);
     setError(null);
-    try {
-      const res = await axios.post('http://localhost:8000/api/emergency/ping');
-      if (res.data.success) {
-        setLocation(res.data.data);
-        fetchLocationHistory();
-        const allUnknown = ['city', 'region', 'country', 'lat', 'lon'].every(
-          (key) => isUnknown(res.data.data[key])
-        );
-        if (allUnknown) getFallbackLocation();
-      } else {
-        setError('Ping failed');
+
+    const screen = {
+      width: window.innerWidth,
+      height: window.innerHeight
+    };
+
+    navigator.geolocation.getCurrentPosition(async (position) => {
+      const gps = {
+        lat: position.coords.latitude,
+        lon: position.coords.longitude
+      };
+
+      try {
+        const res = await axios.post('http://localhost:8000/api/emergency/ping', {
+          screen,
+          gps
+        });
+
+        if (res.data.success) {
+          setLocation(res.data.data);
+          fetchLocationHistory();
+        } else {
+          setError('Ping failed');
+        }
+      } catch (err) {
+        setError('Ping error: ' + err.message);
+      } finally {
+        setIsPinging(false);
       }
-    } catch (err) {
-      setError('Ping error: ' + err.message);
-    } finally {
-      setIsPinging(false);
-    }
+    }, async () => {
+      // fallback if user blocks geolocation
+      try {
+        const res = await axios.post('http://localhost:8000/api/emergency/ping', { screen });
+        if (res.data.success) {
+          setLocation(res.data.data);
+          fetchLocationHistory();
+        }
+      } catch (err) {
+        setError('Ping error: ' + err.message);
+      } finally {
+        setIsPinging(false);
+      }
+    });
   };
+
 
   const fetchLocationHistory = async () => {
     try {
@@ -110,7 +116,7 @@ const EmergencyTracker = () => {
     fetchLocationHistory();
   }, []);
 
-  const displayLocation = manualResult || location || fallbackLocation;
+  const displayLocation = manualResult || location;
 
   return (
     <div style={{ padding: '20px', paddingBottom: '100px' }}>
@@ -169,7 +175,7 @@ const EmergencyTracker = () => {
           <p><strong>Country:</strong> {displayLocation.country}</p>
           <p><strong>Latitude:</strong> {displayLocation.lat}</p>
           <p><strong>Longitude:</strong> {displayLocation.lon}</p>
-          {fallbackLocation && !location && (
+          { !location && (
             <p style={{ color: 'orange' }}><em>Fallback location used</em></p>
           )}
 

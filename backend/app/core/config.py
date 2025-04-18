@@ -6,6 +6,7 @@ class Settings(BaseSettings):
     SECRET_KEY: str = "supersecretkey"
     ALGORITHM: str = "HS256"
     IPINFO_TOKEN: str  # used by backend
+    SQLALCHEMY_DATABASE_URI: str = "postgresql://postgres:yourpassword@db:5432/privacy_audit"
 
     # Pydantic doesn't raise errors
     NUMVERIFY_API_KEY: str = ""
