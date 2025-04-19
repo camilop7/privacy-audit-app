@@ -2,6 +2,8 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 import os
 
+from app.db.base_class import Base
+
 # Database connection URL
 DATABASE_URL = os.getenv(
     "DATABASE_URL",
@@ -11,9 +13,6 @@ DATABASE_URL = os.getenv(
 # Engine and session setup
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-# Base class for models
-Base = declarative_base()
 
 # Dependency to use in FastAPI routes
 def get_db():

@@ -68,7 +68,7 @@ def seed_fake_users(db: Session, total: int = 50):
 
 def main():
     print("📦 Creating DB tables if not exist...")
-    Base.metadata.create_all(bind=engine)
+    ## Base.metadata.create_all(bind=engine)
 
     db = SessionLocal()
     seed_admin_user(db)

@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, Float, JSON, DateTime
 from sqlalchemy.sql import func
-from app.db.base_class import Base
+from app.db.session import Base
 
 class PingLog(Base):
     __tablename__ = "ping_logs"

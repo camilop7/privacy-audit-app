@@ -27,6 +27,9 @@ services:
       - ./backend/app:/app/app
       - ./backend/worker:/app/worker
       - ./backend/scripts:/app/scripts
+      - ./backend/alembic:/app/alembic
+    env_file:
+      - backend/.env.docker
 
 volumes:
   postgres_data:

@@ -7,35 +7,29 @@ from sqlalchemy import engine_from_config, pool
 from sqlalchemy.exc import OperationalError
 from alembic import context
 
+# ✅ First: fix import path so app.models can be imported
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+# ✅ Import all models by triggering models/__init__.py
+import app.models  # 👈 This makes Alembic aware of all models
+
+# ✅ Load Base and metadata after models are registered
 from app.db.session import Base
 target_metadata = Base.metadata
 
-# Add your app to Python path so imports work
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
-# Import SQLAlchemy Base
-from app.db.session import Base
-
-# Explicitly import models so they register with metadata
-from app.models.user import User
-from app.models.ping_log import PingLog  # 👈 this line is KEY
-
-# Load Alembic config
+# ✅ Load Alembic config
 config = context.config
 
-# Use .env or default DATABASE_URL
+# ✅ Load .env and DB URI
 from dotenv import load_dotenv
 load_dotenv()
 
 DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:yourpassword@localhost:5432/privacy_audit")
 config.set_main_option("sqlalchemy.url", DATABASE_URL)
 
-# Set up logging
+# ✅ Setup logging
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
-
-# Pass in your models' metadata
-target_metadata = Base.metadata
 
 # ---- Offline migrations ----
 def run_migrations_offline() -> None:
@@ -47,10 +41,8 @@ def run_migrations_offline() -> None:
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
     )
-
     with context.begin_transaction():
         context.run_migrations()
-
 
 # ---- Online migrations ----
 def run_migrations_online() -> None:
@@ -75,8 +67,8 @@ def run_migrations_online() -> None:
                 )
                 with context.begin_transaction():
                     context.run_migrations()
-                break  # success, exit the loop
-        except OperationalError as e:
+                break
+        except OperationalError:
             print(f"⏳ DB not ready (attempt {attempt}/{max_retries}), retrying in {delay}s...")
             time.sleep(delay)
         except Exception as e:
@@ -86,7 +78,6 @@ def run_migrations_online() -> None:
     else:
         print("❌ Could not connect to DB after multiple attempts.")
         raise RuntimeError("Database connection failed for migrations")
-
 
 # Entry point
 if context.is_offline_mode():

@@ -11,6 +11,7 @@ import json
 from app.core.config import settings
 from app.db.session import get_db
 from app.models.ping_log import PingLog
+from fastapi.encoders import jsonable_encoder
 
 print("✅ Emergency router loaded")
 
@@ -57,7 +58,7 @@ async def send_emergency_ping(payload: PingPayload, request: Request, db: Sessio
         db.commit()
         db.refresh(log)
 
-        return JSONResponse(content={"success": True, "data": log.__dict__})
+        return JSONResponse(content={"success": True, "data": jsonable_encoder(log)})
 
     except Exception as e:
         traceback.print_exc()
