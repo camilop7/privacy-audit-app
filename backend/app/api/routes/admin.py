@@ -5,6 +5,7 @@ from app.models.user import User, UserRole
 from uuid import UUID
 from typing import List
 from pydantic import BaseModel
+from typing import Optional
 from app.core.deps import get_current_admin
 
 
@@ -16,6 +17,9 @@ class UserOut(BaseModel):
     email: str
     username: str
     role: UserRole
+    email: str
+    username: Optional[str] = None
+    role: Optional[UserRole] = None
 
     class Config:
         orm_mode = True

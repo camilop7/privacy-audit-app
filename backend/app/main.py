@@ -3,11 +3,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import create_engine, text
 from sqlalchemy.exc import OperationalError
 from app.api.routes import router as api_router
-from app.core.config import settings  # assuming you store DB URL here
+from app.core.config import settings
 import time
 import sys
 
 app = FastAPI(title="Privacy Audit API")
+app.debug = True
 
 allow_origins = [
     "http://localhost:3000",
