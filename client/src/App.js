@@ -1,21 +1,40 @@
+// src/App.jsx
 import React from 'react';
-import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
-import Layout from './components/Layout';
-import ScanPage from './pages/ScanPage';
-import PhoneTracker from './pages/PhoneTracker';
-import EmergencyTracker from './pages/EmergencyTracker';
-import AdminDashboard from './pages/AdminDashboard';
-import Login from './pages/Login';
-import PrivateRoute from './components/PrivateRoute'; // ✅ We'll create this next
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate
+} from 'react-router-dom';
+
+import Sidebar            from './components/Sidebar';
+import NavBar             from './components/NavBar';
+import PrivateRoute       from './components/PrivateRoute';
+
+import HomePage           from './pages/HomePage';
+import Login              from './pages/Login';
+import ScanPage           from './pages/ScanPage';
+import PhoneTracker       from './pages/PhoneTracker';
+import EmergencyTracker   from './pages/EmergencyTracker';
+import AdminDashboard     from './pages/AdminDashboard';
+import BookingsDashboard  from './pages/BookingsDashboard';
 
 function App() {
   return (
     <Router>
-      <Layout>
+      {/* fixed sidebar */}
+      <Sidebar />
+
+      {/* main content area, shifted right by sidebar width */}
+      <div style={{ marginLeft: '240px', transition: 'margin-left 0.3s' }}>
+        <NavBar />
+
         <Routes>
+          {/* PUBLIC */}
+          <Route path="/"      element={<HomePage />} />
           <Route path="/login" element={<Login />} />
 
-          {/* Protected Routes */}
+          {/* PROTECTED */}
           <Route
             path="/scan"
             element={
@@ -41,18 +60,26 @@ function App() {
             }
           />
           <Route
-            path="/admin-dashboard"
+            path="/admin"
             element={
               <PrivateRoute>
                 <AdminDashboard />
               </PrivateRoute>
             }
           />
+          <Route
+            path="/bookings"
+            element={
+              <PrivateRoute>
+                <BookingsDashboard />
+              </PrivateRoute>
+            }
+          />
 
-          {/* Default route: redirect to login */}
-          <Route path="*" element={<Navigate to="/login" replace />} />
+          {/* catch-all: redirect unknown URLs back to home */}
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
-      </Layout>
+      </div>
     </Router>
   );
 }

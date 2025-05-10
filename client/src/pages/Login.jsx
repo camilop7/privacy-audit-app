@@ -8,24 +8,17 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    setError('');
-    try {
-      const res = await axios.post('http://localhost:8000/api/auth/login', {
-        email,
-        password
-      });
-
-      const token = res.data.access_token;
-      localStorage.setItem('token', token); // store token
-
-      navigate('/admin'); // or wherever your dashboard route is
-    } catch (err) {
-      setError('Invalid credentials');
-      console.error('❌ Login failed', err);
-    }
-  };
+ const handleLogin = async (e) => {
+  e.preventDefault();
+  setError('');
+  try {
+    const res = await axios.post('http://localhost:8000/api/auth/login', { email, password });
+    localStorage.setItem('token', res.data.access_token);
+    navigate('/scan');    // choose any protected route
+  } catch (err) {
+    setError('Invalid credentials');
+  }
+};
 
   return (
     <div style={{ padding: '40px', maxWidth: '400px', margin: 'auto' }}>
