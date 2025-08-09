@@ -1,31 +1,46 @@
-from pydantic import BaseModel
-from typing import Optional
-from uuid import UUID
 from datetime import datetime
-from app.schemas.service import ServiceOut
-from app.schemas.user import UserOut
+from enum import Enum
+from typing import Optional, List
+from uuid import UUID
+from pydantic import BaseModel, ConfigDict, Field
+
+class BookingStatus(str, Enum):
+    pending = "pending"
+    confirmed = "confirmed"
+    cancelled = "cancelled"
+    completed = "completed"
 
 class BookingBase(BaseModel):
     service_id: UUID
-    scheduled_for: datetime
-    status: Optional[str] = "pending"
+    start_time: datetime
+    end_time: datetime
     notes: Optional[str] = None
 
 class BookingCreate(BookingBase):
     pass
 
 class BookingUpdate(BaseModel):
-    scheduled_for: Optional[datetime]
-    status: Optional[str]
-    notes: Optional[str]
+    start_time: Optional[datetime] = None
+    end_time: Optional[datetime] = None
+    status: Optional[BookingStatus] = None
+    notes: Optional[str] = None
 
-class BookingOut(BookingBase):
+class BookingRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: UUID
     user_id: UUID
+    service_id: UUID
+    status: BookingStatus
+    start_time: datetime
+    end_time: datetime
+    price_at_booking: float
     created_at: datetime
-    service: ServiceOut
-    # optionally include user details:
-    # user: UserOut
+    updated_at: datetime
 
-    class Config:
-        orm_mode = True
+    # helpful denorms for UI
+    service_name: Optional[str] = None
+
+class Page(BaseModel):
+    items: List[BookingRead]
+    total: int
